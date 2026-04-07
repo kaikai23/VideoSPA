@@ -1,5 +1,8 @@
 tmp
+checkpoints
 checkpoints/
+.codex
+.codex/
 dataset/*
 !dataset/**/*.py
 __pycache__/
