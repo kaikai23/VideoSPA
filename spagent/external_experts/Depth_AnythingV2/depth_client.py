@@ -72,7 +72,7 @@ class DepthClient:
             logger.info(f"图片尺寸: {image.shape}")
             
             # 将图片编码为base64
-            _, buffer = cv2.imencode('.jpg', image)
+            _, buffer = cv2.imencode('.jpg', image) # TODO: 这里jpg可能是有损的压缩
             image_b64 = base64.b64encode(buffer).decode('utf-8')
             
             # 准备请求数据

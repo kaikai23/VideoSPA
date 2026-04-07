@@ -19,6 +19,7 @@ scipy
 scikit-learn
 transformers
 Flask
+python-dotenv
 clip
 datasets
 moondream

@@ -51,7 +51,7 @@ class SegmentationTool(Tool):
             except ImportError:
                 # Fallback to creating a simple mock
                 class SimpleMockSAM2:
-                    def infer(self, image_path, **kwargs):
+                    def infer(self, image_path, prompts=None, **kwargs):
                         stem = Path(image_path).stem
                         
                         # 模拟多个掩码（2-4个随机数量的对象）
@@ -146,22 +146,19 @@ class SegmentationTool(Tool):
                     "error": f"Image file not found: {image_path}"
                 }
             
-            # Prepare arguments for segmentation
-            seg_args = {"image_path": image_path}
-            
+            prompts = {}
             if point_coords is not None:
-                seg_args["point_coords"] = point_coords
+                prompts["point_coords"] = point_coords
             if point_labels is not None:
-                seg_args["point_labels"] = point_labels
+                prompts["point_labels"] = point_labels
             if box is not None:
-                seg_args["box"] = box
+                prompts["box"] = box
             
             # Call segmentation
             if hasattr(self._client, 'infer'):
-                result = self._client.infer(**seg_args)
+                result = self._client.infer(image_path, prompts or None)
             else:
-                # Fallback for different client interfaces
-                result = self._client.segment(**seg_args)
+                result = self._client.segment(image_path=image_path, **prompts)
             
             if result and result.get('success'):
                 logger.info("Segmentation completed successfully")

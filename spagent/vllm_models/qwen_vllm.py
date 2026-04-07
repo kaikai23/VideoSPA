@@ -2,16 +2,20 @@ import os
 import base64
 import requests
 import mimetypes
-from openai import OpenAI
 from pathlib import Path
 from typing import List, Optional, Union
 
-from qwen import encode_image, create_message_with_image
+from dotenv import load_dotenv
+from openai import OpenAI
+
+from .qwen import encode_image, create_message_with_image
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 # Initialize Qwen client with vLLM configuration
 client = OpenAI(
     api_key="dummy",  # vLLM doesn't require a real API key
-    base_url="http://10.8.131.51:30058/v1",
+    base_url=os.getenv("VLLM_BASE_URL"),
 )
 
 def qwen_single_image_inference(
