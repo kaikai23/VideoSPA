@@ -29,13 +29,13 @@ def download_vsibench(test_mode=False, max_samples=5, start_index=0):
     os.makedirs(dataset_folder, exist_ok=True)
     os.makedirs(target_video_folder, exist_ok=True)
     
-    # 检查源文件夹是否存在
-    if not os.path.exists(source_video_base):
-        print(f"❌ 源视频文件夹不存在: {source_video_base}")
-        print("请确保VSI-Bench数据集已下载到指定路径")
-        return
-    
-    print(f"✅ 源文件夹存在，开始处理...")
+    source_video_available = os.path.exists(source_video_base)
+    if source_video_available:
+        print("✅ 源文件夹存在，将优先使用本地视频和parquet文件。")
+    else:
+        print(f"⚠️  源视频文件夹不存在: {source_video_base}")
+        print("将继续尝试加载本地parquet或从Hub加载数据集元信息。")
+        print("如果缺少本地视频文件，只会保留已存在于目标目录中的视频。")
     
     # 加载VSI-Bench数据集（从本地路径加载）
     try:
@@ -77,7 +77,7 @@ def download_vsibench(test_mode=False, max_samples=5, start_index=0):
     copied_videos = set()
     failed_videos = []
     
-    print("📹 开始复制视频文件...")
+    print("📹 开始准备视频文件...")
     for video_path in video_files_needed:
         source_path = os.path.join(source_video_base, video_path)
         target_path = os.path.join(target_video_folder, video_path.replace('/', '_'))
@@ -87,19 +87,22 @@ def download_vsibench(test_mode=False, max_samples=5, start_index=0):
         if target_dir:
             os.makedirs(target_dir, exist_ok=True)
         
+        if os.path.exists(target_path):
+            print(f"  ⏭️  跳过: {video_path} (目标已存在)")
+            copied_videos.add(video_path)
+            continue
+
         if os.path.exists(source_path):
             try:
-                if not os.path.exists(target_path):  # 避免重复复制
-                    shutil.copy2(source_path, target_path)
-                    print(f"  ✅ 复制: {video_path}")
-                else:
-                    print(f"  ⏭️  跳过: {video_path} (已存在)")
+                shutil.copy2(source_path, target_path)
+                print(f"  ✅ 复制: {video_path}")
                 copied_videos.add(video_path)
             except Exception as e:
                 print(f"  ❌ 复制失败: {video_path} - {e}")
                 failed_videos.append(video_path)
         else:
-            print(f"  ❌ 源文件不存在: {source_path}")
+            print(f"  ❌ 视频不可用: {video_path}")
+            print(f"     缺少源文件: {source_path}")
             failed_videos.append(video_path)
     
     print(f"\n📊 视频复制结果:")
